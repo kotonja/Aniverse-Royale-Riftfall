@@ -1,5 +1,7 @@
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConstants = require(Shared.Config.GameConstants)
@@ -10,6 +12,8 @@ local CharacterService = {}
 
 local statesByPlayer = {}
 local remotes = {}
+local padConnections = {}
+local padDebounce = {}
 
 local function ensureRemote(remoteName)
 	local folder = ReplicatedStorage:FindFirstChild("Remotes")
@@ -50,6 +54,13 @@ local function buildStateFromDefinition(characterId)
 		blocking = false,
 		blockBrokenUntil = 0,
 		sprinting = false,
+		dashing = false,
+		sliding = false,
+		doubleJumped = false,
+		lastDashAt = 0,
+		lastSlideAt = 0,
+		lastDoubleJumpAt = 0,
+		lastWallKickAt = 0,
 		sunburstGuardUntil = 0,
 		lastStateSentAt = 0,
 	}
@@ -102,6 +113,16 @@ local function serializeState(player, extra)
 			blocking = state.blocking,
 			blockBroken = os.clock() < state.blockBrokenUntil,
 		},
+		movement = {
+			sprinting = state.sprinting,
+			dashing = state.dashing,
+			sliding = state.sliding,
+			doubleJumped = state.doubleJumped,
+			lastDashAt = state.lastDashAt,
+			lastSlideAt = state.lastSlideAt,
+			lastDoubleJumpAt = state.lastDoubleJumpAt,
+			lastWallKickAt = state.lastWallKickAt,
+		},
 		match = {
 			mode = GameConstants.Match.ModeName,
 			state = GameConstants.Match.SandboxState,
@@ -117,6 +138,12 @@ local function serializeState(player, extra)
 	end
 
 	return payload
+end
+
+local function fireFeedback(player, payload)
+	if remotes.CombatFeedback then
+		remotes.CombatFeedback:FireClient(player, payload)
+	end
 end
 
 local function onCharacterAdded(player)
@@ -142,22 +169,72 @@ end
 
 local function onPlayerRemoving(player)
 	statesByPlayer[player] = nil
+	padDebounce[player] = nil
+end
+
+local function findCharacterPads()
+	local worldRoot = Workspace:FindFirstChild(GameConstants.World.RootName)
+	local dojo = worldRoot and worldRoot:FindFirstChild(GameConstants.World.TrainingDojoName)
+	return dojo and dojo:FindFirstChild(GameConstants.World.CharacterPadFolderName)
+end
+
+local function bindPad(pad)
+	if padConnections[pad] or not pad:IsA("BasePart") then
+		return
+	end
+
+	CollectionService:AddTag(pad, GameConstants.World.Tags.CharacterPad)
+	padConnections[pad] = pad.Touched:Connect(function(hit)
+		local character = hit and hit.Parent
+		local player = character and Players:GetPlayerFromCharacter(character)
+		if not player then
+			return
+		end
+
+		local now = os.clock()
+		local key = tostring(player.UserId) .. ":" .. pad:GetFullName()
+		if padDebounce[key] and now - padDebounce[key] < 1 then
+			return
+		end
+		padDebounce[key] = now
+
+		local characterId = tostring(pad:GetAttribute("CharacterId") or "")
+		if CharacterService.SetSelectedCharacter(player, characterId) then
+			local definition = CharacterDefinitions.get(characterId)
+			fireFeedback(player, {
+				kind = "selected",
+				action = definition and definition.displayName or characterId,
+			})
+		end
+	end)
+end
+
+local function bindCharacterPads()
+	local padsFolder = findCharacterPads()
+	if not padsFolder then
+		warn("[Aniverse Royale] CharacterPads folder missing. Apply the AR-002 blueprint for real selection pads.")
+		return
+	end
+
+	for _, child in ipairs(padsFolder:GetChildren()) do
+		bindPad(child)
+	end
+
+	padsFolder.ChildAdded:Connect(bindPad)
 end
 
 function CharacterService.Start()
 	remotes.RequestCharacterChange = ensureRemote(GameConstants.Remotes.RequestCharacterChange)
-	remotes.MovementAction = ensureRemote(GameConstants.Remotes.MovementAction)
 	remotes.StateUpdate = ensureRemote(GameConstants.Remotes.StateUpdate)
+	remotes.CombatFeedback = ensureRemote(GameConstants.Remotes.CombatFeedback)
 
 	remotes.RequestCharacterChange.OnServerEvent:Connect(function(player, requestedCharacterId)
-		CharacterService.SetSelectedCharacter(player, tostring(requestedCharacterId or ""))
-	end)
-
-	remotes.MovementAction.OnServerEvent:Connect(function(player, actionName)
-		if actionName == GameConstants.Actions.SprintBegin then
-			CharacterService.SetSprinting(player, true)
-		elseif actionName == GameConstants.Actions.SprintEnd then
-			CharacterService.SetSprinting(player, false)
+		if CharacterService.SetSelectedCharacter(player, tostring(requestedCharacterId or "")) then
+			local definition = CharacterService.GetDefinition(player)
+			fireFeedback(player, {
+				kind = "selected",
+				action = definition and definition.displayName or "Riftborn",
+			})
 		end
 	end)
 
@@ -167,6 +244,8 @@ function CharacterService.Start()
 	for _, player in ipairs(Players:GetPlayers()) do
 		onPlayerAdded(player)
 	end
+
+	task.defer(bindCharacterPads)
 end
 
 function CharacterService.Step(deltaTime)
@@ -179,6 +258,14 @@ function CharacterService.Step(deltaTime)
 			if not state.blocking and now >= state.blockBrokenUntil then
 				state.guard = math.min(state.maxGuard, state.guard + GameConstants.Movement.GuardRegenPerSecond * deltaTime)
 			end
+		end
+
+		if state.dashing and now - state.lastDashAt > GameConstants.Movement.DashDuration then
+			state.dashing = false
+		end
+
+		if state.sliding and now - state.lastSlideAt > 0.45 then
+			state.sliding = false
 		end
 
 		if now - state.lastStateSentAt >= 0.2 then
@@ -221,6 +308,20 @@ function CharacterService.SetSprinting(player, isSprinting)
 
 	state.sprinting = isSprinting == true
 	applyMovementStats(player)
+	CharacterService.SendState(player)
+end
+
+function CharacterService.SetMovementState(player, patch)
+	local state = statesByPlayer[player]
+	if not state then
+		return
+	end
+
+	for key, value in pairs(patch or {}) do
+		state[key] = value
+	end
+
+	CharacterService.SendState(player)
 end
 
 function CharacterService.TrySpendFlow(player, amount)

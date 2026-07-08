@@ -1,15 +1,19 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local InputBindings = require(Shared.Config.InputBindings)
+
 local InputController = {}
 
-InputController.Keybinds = {
-	Sprint = Enum.KeyCode.LeftShift,
-	Dash = Enum.KeyCode.LeftAlt,
-	Slide = Enum.KeyCode.C,
-	Skill1 = Enum.KeyCode.Q,
-	Skill2 = Enum.KeyCode.E,
-	Skill3 = Enum.KeyCode.R,
-	Block = Enum.KeyCode.F,
-	Ultimate = Enum.KeyCode.X,
-}
+InputController.Keybinds = InputBindings.Keyboard
+
+function InputController.GetAction(actionKey)
+	return InputBindings.getAction(actionKey)
+end
+
+function InputController.HotbarOrder()
+	return InputBindings.listHotbarOrder()
+end
 
 function InputController.Start()
 	return true

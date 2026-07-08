@@ -4,6 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConstants = require(Shared.Config.GameConstants)
+local InputBindings = require(Shared.Config.InputBindings)
 
 local player = Players.LocalPlayer
 local combatAction = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild(GameConstants.Remotes.CombatAction)
@@ -18,23 +19,22 @@ end
 
 local function getRoot()
 	local playerGui = player:FindFirstChildOfClass("PlayerGui")
-	local hud = playerGui and playerGui:FindFirstChild("AniverseHUD")
-	return hud and hud:FindFirstChild("Root")
+	local hud = playerGui and playerGui:FindFirstChild(GameConstants.UI.HudName)
+	return hud and hud:FindFirstChild(GameConstants.UI.RootName)
 end
 
-local function findButton(buttonName)
+local function findHotbarButton(buttonName)
 	local root = getRoot()
 	if not root then
 		return nil
 	end
 
-	local abilities = root:FindFirstChild("Abilities")
-	local mobile = root:FindFirstChild("MobileButtons")
-	return (abilities and abilities:FindFirstChild(buttonName)) or (mobile and mobile:FindFirstChild(buttonName))
+	local hotbar = root:FindFirstChild(GameConstants.UI.AbilityHotbarName) or root:FindFirstChild("Abilities")
+	return hotbar and hotbar:FindFirstChild(buttonName)
 end
 
 local function bindButton(buttonName, actionName)
-	local button = findButton(buttonName)
+	local button = findHotbarButton(buttonName)
 	if button and button:IsA("TextButton") then
 		button.Activated:Connect(function()
 			if actionName == GameConstants.Actions.BlockBegin then
@@ -64,15 +64,15 @@ function CombatController.Start()
 
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			send(GameConstants.Actions.Basic)
-		elseif input.KeyCode == Enum.KeyCode.Q then
+		elseif input.KeyCode == InputBindings.Keyboard.Skill1 then
 			send(GameConstants.Actions.Skill1)
-		elseif input.KeyCode == Enum.KeyCode.E then
+		elseif input.KeyCode == InputBindings.Keyboard.Skill2 then
 			send(GameConstants.Actions.Skill2)
-		elseif input.KeyCode == Enum.KeyCode.R then
+		elseif input.KeyCode == InputBindings.Keyboard.Skill3 then
 			send(GameConstants.Actions.Skill3)
-		elseif input.KeyCode == Enum.KeyCode.X then
+		elseif input.KeyCode == InputBindings.Keyboard.Ultimate then
 			send(GameConstants.Actions.Ultimate)
-		elseif input.KeyCode == Enum.KeyCode.F then
+		elseif input.KeyCode == InputBindings.Keyboard.Block then
 			blockHeld = true
 			send(GameConstants.Actions.BlockBegin)
 		end
@@ -83,7 +83,7 @@ function CombatController.Start()
 			return
 		end
 
-		if input.KeyCode == Enum.KeyCode.F and blockHeld then
+		if input.KeyCode == InputBindings.Keyboard.Block and blockHeld then
 			blockHeld = false
 			send(GameConstants.Actions.BlockEnd)
 		end
@@ -91,7 +91,7 @@ function CombatController.Start()
 
 	task.spawn(function()
 		local playerGui = player:WaitForChild("PlayerGui")
-		playerGui:WaitForChild("AniverseHUD", 10)
+		playerGui:WaitForChild(GameConstants.UI.HudName, 10)
 		bindUiButtons()
 	end)
 end

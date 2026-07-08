@@ -16,7 +16,7 @@ Squad Royale is the main mode. The future target is 30 players as 10 squads of 3
 
 The Aniverse is a shattered multiverse battlefield where Riftborn compete in the Riftfall. It uses no real anime IP, no copied character names, no copied outfits, no copied move names, and no protected anime terminology.
 
-Current test space: Training Dojo.
+Current test space: AR-002 Training Dojo.
 
 Future main map: Riftfall Archipelago.
 
@@ -31,7 +31,7 @@ Storm: Riftstorm.
 - Riftstorm: closing battle royale storm.
 - Rift Hub: social and matchmaking lobby.
 - Riftfall Archipelago: future main battle royale map.
-- Training Dojo: current AR-001 combat/movement sandbox.
+- Training Dojo: current AR-002 combat/movement/game-feel sandbox.
 
 ## Core Pillars
 

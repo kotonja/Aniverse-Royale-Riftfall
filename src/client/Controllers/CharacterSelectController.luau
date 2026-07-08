@@ -9,11 +9,15 @@ local requestCharacterChange = ReplicatedStorage:WaitForChild("Remotes"):WaitFor
 
 local CharacterSelectController = {}
 
-local function getButton(buttonName)
+local function getPanel()
 	local playerGui = player:FindFirstChildOfClass("PlayerGui")
-	local hud = playerGui and playerGui:FindFirstChild("AniverseHUD")
-	local root = hud and hud:FindFirstChild("Root")
-	local panel = root and root:FindFirstChild("CharacterSelect")
+	local hud = playerGui and playerGui:FindFirstChild(GameConstants.UI.HudName)
+	local root = hud and hud:FindFirstChild(GameConstants.UI.RootName)
+	return root and (root:FindFirstChild(GameConstants.UI.CharacterPanelName) or root:FindFirstChild("CharacterSelect"))
+end
+
+local function getButton(buttonName)
+	local panel = getPanel()
 	return panel and panel:FindFirstChild(buttonName)
 end
 
@@ -29,9 +33,11 @@ end
 function CharacterSelectController.Start()
 	task.spawn(function()
 		local playerGui = player:WaitForChild("PlayerGui")
-		playerGui:WaitForChild("AniverseHUD", 10)
+		playerGui:WaitForChild(GameConstants.UI.HudName, 10)
 		bindButton("KairoButton", "kairo_soljin")
 		bindButton("MiraButton", "mira_gale")
+		bindButton("KairoCard", "kairo_soljin")
+		bindButton("MiraCard", "mira_gale")
 	end)
 end
 

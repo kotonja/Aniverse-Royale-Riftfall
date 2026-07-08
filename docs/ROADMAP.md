@@ -1,12 +1,12 @@
 # Aniverse Royale: Riftfall Roadmap
 
-## AR-001 Foundation + Combat Sandbox
+## AR-001 Foundation + Combat Sandbox - Complete
 
 Docs, Rojo-friendly source structure, shared config, server-authoritative combat, client movement/input/HUD, two prototype Riftborn, greybox Training Dojo, damage dummies, and placeholder future services.
 
-## AR-002 Expanded Movement + Better Camera
+## AR-002 Studio Foundation + Movement / Camera / Game Feel Polish - Complete
 
-Improve dash feel, air control, slide, wall interactions, camera tuning, mobile controls, and input polish.
+Real Studio instance contract for the Training Dojo and HUD, dedicated server movement validation, remote rate limiting, sprint/dash/air dash/double jump/slide/wall kick feel, third-person camera pulses, mobile buttons, combat feedback, and temporary client VFX.
 
 ## AR-003 Four Character 3v3 Arena
 

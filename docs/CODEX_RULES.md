@@ -13,6 +13,9 @@
 - Add comments for important game systems.
 - Do not trust client remotes.
 - Validate cooldowns, distances, and states on the server.
-- UI should be real `StarterGui` instances, not runtime-generated HUD trees.
-- World build should be real `Workspace` instances, not runtime-generated map geometry.
+- Permanent UI must be real `StarterGui` instances, not runtime-generated HUD trees.
+- Permanent world build must be real `Workspace` instances, not runtime-generated map geometry.
 - Scripts may control behavior and update existing UI/world objects, but should not be the source of the core HUD or map build.
+- Runtime scripts may create temporary combat VFX, dash trails, slide dust, double-jump rings, hit markers, cooldown flashes, and floating damage numbers.
+- Runtime scripts may attach behavior to real character pads, dummies, gates, and HUD controls, but those persistent instances must already exist in Studio or a blueprint.
+- `WorldBuilderService` is a validator/dev helper, not a runtime map generator.
