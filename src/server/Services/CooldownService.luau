@@ -50,4 +50,8 @@ function CooldownService.ClearPlayer(player)
 	cooldownsByUserId[player.UserId] = nil
 end
 
+function CooldownService.ResetPlayer(player)
+	CooldownService.ClearPlayer(player)
+end
+
 return CooldownService

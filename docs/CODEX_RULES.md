@@ -4,6 +4,8 @@
 - Never use copied character names, outfits, logos, move names, music, sounds, UI, terms, or references.
 - Never add pay-to-win.
 - Keep combat server-authoritative.
+- Team combat must use server-owned team logic.
+- No friendly fire in normal arena mode.
 - Keep code modular.
 - Keep mobile support in mind.
 - Every new feature should update docs if it changes game design.
@@ -12,10 +14,11 @@
 - Prefer readable code over clever code.
 - Add comments for important game systems.
 - Do not trust client remotes.
-- Validate cooldowns, distances, and states on the server.
+- Validate cooldowns, distances, teams, health, bot damage, and states on the server.
 - Permanent UI must be real `StarterGui` instances, not runtime-generated HUD trees.
 - Permanent world build must be real `Workspace` instances, not runtime-generated map geometry.
+- Permanent Arena3v3 objects must remain real Studio instances.
 - Scripts may control behavior and update existing UI/world objects, but should not be the source of the core HUD or map build.
-- Runtime scripts may create temporary combat VFX, dash trails, slide dust, double-jump rings, hit markers, cooldown flashes, and floating damage numbers.
-- Runtime scripts may attach behavior to real character pads, dummies, gates, and HUD controls, but those persistent instances must already exist in Studio or a blueprint.
+- Runtime scripts may create temporary combat VFX, dash trails, slide dust, double-jump rings, hit markers, cooldown flashes, reveal marks, warning circles, support pulses, and floating damage numbers.
+- Runtime scripts may attach behavior to real character pads, dummies, team pads, start pads, gates, bots, and HUD controls, but those persistent instances must already exist in Studio or a blueprint.
 - `WorldBuilderService` is a validator/dev helper, not a runtime map generator.

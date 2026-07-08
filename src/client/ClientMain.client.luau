@@ -8,6 +8,8 @@ local CharacterSelectController = require(Controllers:WaitForChild("CharacterSel
 local CombatController = require(Controllers:WaitForChild("CombatController"))
 local FeedbackController = require(Controllers:WaitForChild("FeedbackController"))
 local MobileControlsController = require(Controllers:WaitForChild("MobileControlsController"))
+local ArenaHUDController = require(Controllers:WaitForChild("ArenaHUDController"))
+local TeamPanelController = require(Controllers:WaitForChild("TeamPanelController"))
 
 InputController.Start()
 CameraController.Start()
@@ -17,5 +19,7 @@ MovementController.Start()
 CharacterSelectController.Start()
 CombatController.Start()
 MobileControlsController.Start()
+ArenaHUDController.Start()
+TeamPanelController.Start()
 
-print("[Aniverse Royale] AR-002 client controllers loaded.")
+print("[Aniverse Royale] AR-003 client controllers loaded.")

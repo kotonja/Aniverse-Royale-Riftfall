@@ -19,6 +19,20 @@ local requiredWorkspacePaths = {
 	"AniverseRiftfall.TrainingDojo.Signs",
 	"AniverseRiftfall.TrainingDojo.LightingHelpers",
 	"AniverseRiftfall.TrainingDojo.DebugMarkers",
+	"AniverseRiftfall.Arena3v3",
+	"AniverseRiftfall.Arena3v3.ArenaFloor",
+	"AniverseRiftfall.Arena3v3.SunSpawnPoints",
+	"AniverseRiftfall.Arena3v3.MoonSpawnPoints",
+	"AniverseRiftfall.Arena3v3.TeamPads",
+	"AniverseRiftfall.Arena3v3.StartRoundPad",
+	"AniverseRiftfall.Arena3v3.SpectatorPlatform",
+	"AniverseRiftfall.Arena3v3.ArenaBoundaries",
+	"AniverseRiftfall.Arena3v3.Cover",
+	"AniverseRiftfall.Arena3v3.VerticalPlatforms",
+	"AniverseRiftfall.Arena3v3.BotSpawnPoints",
+	"AniverseRiftfall.Arena3v3.ArenaBots",
+	"AniverseRiftfall.Arena3v3.ArenaSigns",
+	"AniverseRiftfall.Arena3v3.DebugMarkers",
 }
 
 local requiredStarterGuiPaths = {
@@ -33,6 +47,8 @@ local requiredStarterGuiPaths = {
 	"AniverseHUD.Root.FeedbackLayer",
 	"AniverseHUD.Root.MobileButtons",
 	"AniverseHUD.Root.DebugPanel",
+	"AniverseHUD.Root.TeamPanel",
+	"AniverseHUD.Root.ArenaPanel",
 }
 
 local function findFrom(root, dottedPath)
@@ -46,7 +62,7 @@ end
 local function warnMissing(rootName, root, paths)
 	for _, path in ipairs(paths) do
 		if not findFrom(root, path) then
-			warn(("[Aniverse Royale] Missing %s.%s. Apply blueprints/ar002/ar002_studio_foundation.blueprint.json."):format(rootName, path))
+			warn(("[Aniverse Royale] Missing %s.%s. Apply blueprints/ar003/ar003_3v3_arena.blueprint.json."):format(rootName, path))
 		end
 	end
 end
@@ -64,14 +80,28 @@ end
 local function tagContractInstances()
 	local worldRoot = Workspace:FindFirstChild(GameConstants.World.RootName)
 	local dojo = worldRoot and worldRoot:FindFirstChild(GameConstants.World.TrainingDojoName)
-	if not dojo then
-		return
+	local arena = worldRoot and worldRoot:FindFirstChild(GameConstants.World.Arena3v3Name)
+	if dojo then
+		tagChildren(dojo:FindFirstChild(GameConstants.World.DummyFolderName), GameConstants.World.Tags.DamageDummy)
+		tagChildren(dojo:FindFirstChild(GameConstants.World.CharacterPadFolderName), GameConstants.World.Tags.CharacterPad)
+		tagChildren(dojo:FindFirstChild(GameConstants.World.MovementCourseName), GameConstants.World.Tags.MovementGate)
+		tagChildren(dojo:FindFirstChild("Signs"), GameConstants.World.Tags.TrainingSign)
 	end
 
-	tagChildren(dojo:FindFirstChild(GameConstants.World.DummyFolderName), GameConstants.World.Tags.DamageDummy)
-	tagChildren(dojo:FindFirstChild(GameConstants.World.CharacterPadFolderName), GameConstants.World.Tags.CharacterPad)
-	tagChildren(dojo:FindFirstChild(GameConstants.World.MovementCourseName), GameConstants.World.Tags.MovementGate)
-	tagChildren(dojo:FindFirstChild("Signs"), GameConstants.World.Tags.TrainingSign)
+	if arena then
+		CollectionService:AddTag(arena, GameConstants.World.Tags.Arena3v3)
+		tagChildren(arena:FindFirstChild("TeamPads"), GameConstants.World.Tags.TeamPad)
+		tagChildren(arena:FindFirstChild("SunSpawnPoints"), GameConstants.World.Tags.ArenaSpawn)
+		tagChildren(arena:FindFirstChild("MoonSpawnPoints"), GameConstants.World.Tags.ArenaSpawn)
+		tagChildren(arena:FindFirstChild("BotSpawnPoints"), GameConstants.World.Tags.ArenaBotSpawn)
+		tagChildren(arena:FindFirstChild("ArenaBoundaries"), GameConstants.World.Tags.ArenaBoundary)
+		tagChildren(arena:FindFirstChild("ArenaBots"), GameConstants.World.Tags.ArenaBot)
+
+		local startPad = arena:FindFirstChild("StartRoundPad")
+		if startPad then
+			CollectionService:AddTag(startPad, GameConstants.World.Tags.ArenaStartPad)
+		end
+	end
 end
 
 function WorldBuilderService.Start()

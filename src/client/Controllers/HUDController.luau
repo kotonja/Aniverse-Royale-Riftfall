@@ -185,7 +185,7 @@ local function renderDebug(root)
 	local text = debugPanel:FindFirstChild("Text")
 	if text and text:IsA("TextLabel") then
 		text.Text = string.format(
-			"AR-002 DEBUG\nFlow %d | Guard %d\nSprint %s | Dash %s | Slide %s",
+			"AR-003 DEBUG\nFlow %d | Guard %d\nSprint %s | Dash %s | Slide %s",
 			math.floor(stats and stats.flow or 0),
 			math.floor(stats and stats.guard or 0),
 			tostring(movement and movement.sprinting or false),
@@ -262,6 +262,24 @@ function HUDController.Start()
 			end
 		elseif payload.kind == "dealtDamage" and payload.amount then
 			message = tostring(math.floor(payload.amount)) .. " damage"
+		elseif payload.kind == "teamSelected" and payload.action then
+			message = "Selected " .. tostring(payload.action)
+		elseif payload.kind == "arenaNeedsTeams" then
+			message = "Need Sun and Moon combatants"
+		elseif payload.kind == "arenaBusy" and payload.action then
+			message = "Arena " .. tostring(payload.action)
+		elseif payload.kind == "allyShielded" then
+			message = "Ally shielded"
+		elseif payload.kind == "allyHealed" then
+			message = "Ally healed"
+		elseif payload.kind == "enemyRevealed" then
+			message = "Enemy revealed"
+		elseif payload.kind == "pulled" then
+			message = "Pulled"
+		elseif payload.kind == "slowed" then
+			message = "Slowed"
+		elseif payload.kind == "damageReduced" then
+			message = "Damage reduced"
 		elseif payload.action then
 			message = tostring(payload.action)
 		elseif payload.amount then

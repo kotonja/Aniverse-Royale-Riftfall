@@ -10,6 +10,8 @@ local TableUtil = require(Shared.Utility.TableUtil)
 
 local CharacterService = {}
 
+local TeamService = nil
+local ArenaRoundService = nil
 local statesByPlayer = {}
 local remotes = {}
 local padConnections = {}
@@ -47,23 +49,40 @@ local function buildStateFromDefinition(characterId)
 		maxHealth = stats.health,
 		shield = stats.shield,
 		maxShield = stats.shield,
+		tempShield = 0,
 		flow = stats.flow,
 		maxFlow = stats.flow,
 		guard = stats.guard,
 		maxGuard = stats.guard,
+		ultimateCharge = 0,
 		blocking = false,
 		blockBrokenUntil = 0,
 		sprinting = false,
 		dashing = false,
 		sliding = false,
 		doubleJumped = false,
+		defeated = false,
 		lastDashAt = 0,
 		lastSlideAt = 0,
 		lastDoubleJumpAt = 0,
 		lastWallKickAt = 0,
 		sunburstGuardUntil = 0,
+		slowUntil = 0,
+		slowMultiplier = 1,
+		damageReductionUntil = 0,
+		damageReductionMultiplier = 0,
 		lastStateSentAt = 0,
 	}
+end
+
+local function getHumanoid(player)
+	local character = player.Character
+	return character and character:FindFirstChildOfClass("Humanoid")
+end
+
+local function getRoot(player)
+	local character = player.Character
+	return character and character:FindFirstChild("HumanoidRootPart")
 end
 
 local function applyMovementStats(player)
@@ -72,17 +91,48 @@ local function applyMovementStats(player)
 		return
 	end
 
-	local character = player.Character
-	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local humanoid = getHumanoid(player)
 	if not humanoid then
 		return
 	end
 
 	local definition = selectedDefinition(state)
 	local stats = definition.baseStats
+	local speed = state.sprinting and stats.sprintSpeed or stats.walkSpeed
+	if os.clock() < (state.slowUntil or 0) then
+		speed *= state.slowMultiplier or 1
+	end
+
 	humanoid.MaxHealth = state.maxHealth
-	humanoid.Health = math.clamp(state.health, 1, state.maxHealth)
-	humanoid.WalkSpeed = state.sprinting and stats.sprintSpeed or stats.walkSpeed
+	humanoid.Health = math.clamp(state.health, state.defeated and 1 or 1, state.maxHealth)
+	humanoid.WalkSpeed = speed
+end
+
+local function getTeamPayload(player)
+	if not TeamService then
+		return {
+			id = "spectator",
+			name = "Spectator",
+		}
+	end
+
+	local teamId = TeamService.GetPlayerTeam(player)
+	local teamInfo = TeamService.GetTeamInfo(teamId)
+	return {
+		id = teamId,
+		name = teamInfo.displayName,
+	}
+end
+
+local function getArenaPayload()
+	if not ArenaRoundService then
+		return {
+			mode = GameConstants.Match.ModeName,
+			state = GameConstants.Match.SandboxState,
+		}
+	end
+
+	return ArenaRoundService.GetClientState()
 end
 
 local function serializeState(player, extra)
@@ -99,6 +149,7 @@ local function serializeState(player, extra)
 			subtitle = definition.subtitle,
 			role = definition.role,
 			aura = definition.aura,
+			passive = definition.passive,
 			abilities = TableUtil.shallowCopy(definition.abilities),
 		},
 		stats = {
@@ -106,12 +157,17 @@ local function serializeState(player, extra)
 			maxHealth = state.maxHealth,
 			shield = state.shield,
 			maxShield = state.maxShield,
+			tempShield = state.tempShield,
 			flow = state.flow,
 			maxFlow = state.maxFlow,
 			guard = state.guard,
 			maxGuard = state.maxGuard,
+			ultimateCharge = state.ultimateCharge,
 			blocking = state.blocking,
 			blockBroken = os.clock() < state.blockBrokenUntil,
+			defeated = state.defeated,
+			slowed = os.clock() < (state.slowUntil or 0),
+			damageReduction = os.clock() < (state.damageReductionUntil or 0),
 		},
 		movement = {
 			sprinting = state.sprinting,
@@ -129,6 +185,8 @@ local function serializeState(player, extra)
 			teamSizeTarget = GameConstants.Match.TeamSizeTarget,
 			futureTargetPlayers = GameConstants.Match.FutureTargetPlayers,
 		},
+		team = getTeamPayload(player),
+		arena = getArenaPayload(),
 	}
 
 	if extra then
@@ -154,7 +212,9 @@ local function onCharacterAdded(player)
 end
 
 local function onPlayerAdded(player)
-	statesByPlayer[player] = buildStateFromDefinition(CharacterDefinitions.DefaultId)
+	if not statesByPlayer[player] then
+		statesByPlayer[player] = buildStateFromDefinition(CharacterDefinitions.DefaultId)
+	end
 
 	player.CharacterAdded:Connect(function()
 		onCharacterAdded(player)
@@ -212,7 +272,7 @@ end
 local function bindCharacterPads()
 	local padsFolder = findCharacterPads()
 	if not padsFolder then
-		warn("[Aniverse Royale] CharacterPads folder missing. Apply the AR-002 blueprint for real selection pads.")
+		warn("[Aniverse Royale] CharacterPads folder missing. Apply the AR-002 or AR-003 blueprint.")
 		return
 	end
 
@@ -223,7 +283,11 @@ local function bindCharacterPads()
 	padsFolder.ChildAdded:Connect(bindPad)
 end
 
-function CharacterService.Start()
+function CharacterService.Start(dependencies)
+	dependencies = dependencies or {}
+	TeamService = dependencies.TeamService
+	ArenaRoundService = dependencies.ArenaRoundService
+
 	remotes.RequestCharacterChange = ensureRemote(GameConstants.Remotes.RequestCharacterChange)
 	remotes.StateUpdate = ensureRemote(GameConstants.Remotes.StateUpdate)
 	remotes.CombatFeedback = ensureRemote(GameConstants.Remotes.CombatFeedback)
@@ -248,15 +312,24 @@ function CharacterService.Start()
 	task.defer(bindCharacterPads)
 end
 
+function CharacterService.SetArenaRoundService(service)
+	ArenaRoundService = service
+end
+
 function CharacterService.Step(deltaTime)
 	local now = os.clock()
 
 	for player, state in pairs(statesByPlayer) do
-		if state.health > 0 then
+		if state.health > 0 and not state.defeated then
 			state.flow = math.min(state.maxFlow, state.flow + GameConstants.Movement.FlowRegenPerSecond * deltaTime)
 
+			local guardRegen = GameConstants.Movement.GuardRegenPerSecond
+			if state.selectedCharacterId == "atlas_null" then
+				guardRegen *= 1.18
+			end
+
 			if not state.blocking and now >= state.blockBrokenUntil then
-				state.guard = math.min(state.maxGuard, state.guard + GameConstants.Movement.GuardRegenPerSecond * deltaTime)
+				state.guard = math.min(state.maxGuard, state.guard + guardRegen * deltaTime)
 			end
 		end
 
@@ -266,6 +339,12 @@ function CharacterService.Step(deltaTime)
 
 		if state.sliding and now - state.lastSlideAt > 0.45 then
 			state.sliding = false
+		end
+
+		if state.slowUntil > 0 and now >= state.slowUntil then
+			state.slowUntil = 0
+			state.slowMultiplier = 1
+			applyMovementStats(player)
 		end
 
 		if now - state.lastStateSentAt >= 0.2 then
@@ -287,6 +366,13 @@ function CharacterService.GetDefinition(player)
 end
 
 function CharacterService.SetSelectedCharacter(player, characterId)
+	if ArenaRoundService and not ArenaRoundService.CanChangeCharacter(player) then
+		CharacterService.SendState(player, {
+			error = "Character locked during arena round.",
+		})
+		return false
+	end
+
 	if not CharacterDefinitions.exists(characterId) then
 		CharacterService.SendState(player, {
 			error = "Unknown Riftborn.",
@@ -300,9 +386,17 @@ function CharacterService.SetSelectedCharacter(player, characterId)
 	return true
 end
 
+function CharacterService.ResetPlayerState(player)
+	local state = statesByPlayer[player]
+	local selectedCharacterId = state and state.selectedCharacterId or CharacterDefinitions.DefaultId
+	statesByPlayer[player] = buildStateFromDefinition(selectedCharacterId)
+	applyMovementStats(player)
+	CharacterService.SendState(player)
+end
+
 function CharacterService.SetSprinting(player, isSprinting)
 	local state = statesByPlayer[player]
-	if not state then
+	if not state or state.defeated then
 		return
 	end
 
@@ -313,7 +407,7 @@ end
 
 function CharacterService.SetMovementState(player, patch)
 	local state = statesByPlayer[player]
-	if not state then
+	if not state or state.defeated then
 		return
 	end
 
@@ -326,7 +420,7 @@ end
 
 function CharacterService.TrySpendFlow(player, amount)
 	local state = statesByPlayer[player]
-	if not state or state.flow < amount then
+	if not state or state.defeated or state.flow < amount then
 		return false
 	end
 
@@ -337,7 +431,7 @@ end
 
 function CharacterService.SetBlocking(player, isBlocking)
 	local state = statesByPlayer[player]
-	if not state then
+	if not state or state.defeated then
 		return false
 	end
 
@@ -350,6 +444,97 @@ function CharacterService.SetBlocking(player, isBlocking)
 	return true
 end
 
+function CharacterService.AddShield(player, amount)
+	local state = statesByPlayer[player]
+	if not state or state.defeated then
+		return 0
+	end
+
+	local cap = state.maxShield + GameConstants.Combat.TemporaryShieldCap
+	local before = state.shield
+	state.shield = math.min(cap, state.shield + amount)
+	state.tempShield = math.max(0, state.shield - state.maxShield)
+	CharacterService.SendState(player)
+	return state.shield - before
+end
+
+function CharacterService.Heal(player, amount)
+	local state = statesByPlayer[player]
+	if not state or state.defeated then
+		return 0
+	end
+
+	local before = state.health
+	state.health = math.min(state.maxHealth, state.health + amount)
+	applyMovementStats(player)
+	CharacterService.SendState(player)
+	return state.health - before
+end
+
+function CharacterService.AddUltimateCharge(player, amount)
+	local state = statesByPlayer[player]
+	if not state then
+		return
+	end
+
+	-- AR-003 still uses cooldown-based ultimates. This charge is saved for the AR-004+ conversion.
+	state.ultimateCharge = math.clamp((state.ultimateCharge or 0) + amount, 0, 100)
+	CharacterService.SendState(player)
+end
+
+function CharacterService.SetSlow(player, multiplier, duration)
+	local state = statesByPlayer[player]
+	if not state or state.defeated then
+		return
+	end
+
+	state.slowMultiplier = math.clamp(multiplier or 1, 0.2, 1)
+	state.slowUntil = math.max(state.slowUntil or 0, os.clock() + (duration or 0))
+	applyMovementStats(player)
+	CharacterService.SendState(player)
+end
+
+function CharacterService.SetDamageReduction(player, multiplier, duration)
+	local state = statesByPlayer[player]
+	if not state or state.defeated then
+		return
+	end
+
+	state.damageReductionMultiplier = math.clamp(multiplier or 0, 0, 0.8)
+	state.damageReductionUntil = math.max(state.damageReductionUntil or 0, os.clock() + (duration or 0))
+	CharacterService.SendState(player)
+end
+
+function CharacterService.MarkDefeated(player)
+	local state = statesByPlayer[player]
+	if not state then
+		return
+	end
+
+	state.health = 0
+	state.shield = 0
+	state.tempShield = 0
+	state.blocking = false
+	state.defeated = true
+
+	local humanoid = getHumanoid(player)
+	if humanoid then
+		humanoid.Health = 1
+	end
+
+	local root = getRoot(player)
+	if root then
+		root.AssemblyLinearVelocity = Vector3.zero
+	end
+
+	CharacterService.SendState(player)
+end
+
+function CharacterService.IsDefeated(player)
+	local state = statesByPlayer[player]
+	return not state or state.defeated or state.health <= 0
+end
+
 function CharacterService.SendState(player, extra)
 	local state = statesByPlayer[player]
 	if not state or not remotes.StateUpdate then
@@ -358,6 +543,12 @@ function CharacterService.SendState(player, extra)
 
 	state.lastStateSentAt = os.clock()
 	remotes.StateUpdate:FireClient(player, serializeState(player, extra))
+end
+
+function CharacterService.SendAllStates(extra)
+	for _, player in ipairs(Players:GetPlayers()) do
+		CharacterService.SendState(player, extra)
+	end
 end
 
 return CharacterService

@@ -35,6 +35,12 @@ local function colorForPayload(payload)
 	if string.find(action, "Flame") or string.find(action, "Ember") or string.find(action, "Dawn") or string.find(action, "Meteor") then
 		return UIConstants.Colors.Kairo
 	end
+	if string.find(action, "Star") or string.find(action, "Nova") or string.find(action, "Light") or payload.kind == "allyHealed" then
+		return UIConstants.Colors.Sora
+	end
+	if string.find(action, "Gravity") or string.find(action, "Orbit") or string.find(action, "Blackstar") or payload.kind == "slowed" then
+		return UIConstants.Colors.Atlas
+	end
 	if payload.kind == "noFlow" then
 		return UIConstants.Colors.NoFlow
 	end

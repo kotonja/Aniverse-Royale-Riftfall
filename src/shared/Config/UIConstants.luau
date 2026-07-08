@@ -11,6 +11,8 @@ UIConstants.Colors = {
 	Guard = Color3.fromRGB(238, 214, 99),
 	Kairo = Color3.fromRGB(255, 132, 56),
 	Mira = Color3.fromRGB(130, 225, 255),
+	Sora = Color3.fromRGB(255, 232, 154),
+	Atlas = Color3.fromRGB(116, 88, 202),
 	Cooldown = Color3.fromRGB(255, 226, 120),
 	NoFlow = Color3.fromRGB(255, 92, 92),
 	Ready = Color3.fromRGB(110, 255, 180),
@@ -20,6 +22,16 @@ UIConstants.Messages = {
 	NoFlow = "Not enough Flow",
 	Cooldown = "Cooling down",
 	BlockBroken = "Guard broken",
+	TeamSelected = "Team selected",
+	RoundStarting = "Round starting",
+	RoundActive = "Arena active",
+	RoundOver = "Round over",
+	AllyShielded = "Ally shielded",
+	AllyHealed = "Ally healed",
+	EnemyRevealed = "Enemy revealed",
+	Pulled = "Pulled",
+	Slowed = "Slowed",
+	DamageReduced = "Damage reduced",
 }
 
 return UIConstants

@@ -10,13 +10,18 @@ Original anime-inspired Roblox squad battle royale.
 
 ## Main Mode
 
-Squad Royale is the main mode. The future target is 30 players as 10 squads of 3. Last team standing is the only main win condition. Early alpha can support smaller sandbox and testing matches while the combat foundation is built.
+Squad Royale is the future main mode. The target is 30 players as 10 squads of 3. Last team standing is the only main win condition. Early alpha supports smaller sandbox and testing matches while the combat foundation is built.
+
+Current testing mode: AR-003 3v3 Arena Test.
 
 ## World
 
 The Aniverse is a shattered multiverse battlefield where Riftborn compete in the Riftfall. It uses no real anime IP, no copied character names, no copied outfits, no copied move names, and no protected anime terminology.
 
-Current test space: AR-002 Training Dojo.
+Current test spaces:
+
+- Training Dojo: movement, combat, and character practice.
+- Arena3v3: local team-combat test with Team Sun, Team Moon, and arena bots.
 
 Future main map: Riftfall Archipelago.
 
@@ -31,7 +36,8 @@ Storm: Riftstorm.
 - Riftstorm: closing battle royale storm.
 - Rift Hub: social and matchmaking lobby.
 - Riftfall Archipelago: future main battle royale map.
-- Training Dojo: current AR-002 combat/movement/game-feel sandbox.
+- Training Dojo: combat/movement/game-feel sandbox.
+- Arena3v3: current AR-003 team-combat proving ground.
 
 ## Core Pillars
 
@@ -51,9 +57,9 @@ Storm: Riftstorm.
 - Feel: explosive solar martial artist
 - Basic combo: Flame Combo
 - Skill 1: Ember Rush, forward dash punch
-- Skill 2: Sunburst Guard, defensive counter/block enhancer
+- Skill 2: Sunburst Guard, defensive trade enhancer
 - Skill 3: Meteor Step, leap slam
-- Ultimate: Dawn Breaker placeholder
+- Ultimate: Dawn Breaker
 
 ### Mira Gale
 
@@ -61,10 +67,32 @@ Storm: Riftstorm.
 - Aura: Gale
 - Feel: fast aerial wind duelist
 - Basic combo: Wind Combo
-- Skill 1: Razor Arc, wind projectile
+- Skill 1: Razor Arc, wind slash
 - Skill 2: Wind Step, mobility dash
 - Skill 3: Cyclone Lift, small lifting tornado
-- Ultimate: Tempest Waltz placeholder
+- Ultimate: Tempest Waltz
+
+### Sora Nym
+
+- Role: Support
+- Aura: Light
+- Feel: calm, bright, precise squad medic
+- Basic combo: Starlight Bolt Chain
+- Skill 1: Starlight Bolt, light poke and short reveal mark
+- Skill 2: Constellation Shield, ally or self shield
+- Skill 3: Star Mend, small ally heal
+- Ultimate: Nova Sanctuary, short support zone
+
+### Atlas Null
+
+- Role: Tank / Controller
+- Aura: Gravity
+- Feel: heavy, calm, space-controlling frontliner
+- Basic combo: Gravity Palm Chain
+- Skill 1: Pull Palm, gravity pull pulse
+- Skill 2: Orbit Guard, damage reduction
+- Skill 3: Heavy Step, slow field
+- Ultimate: Blackstar Drop, telegraphed gravity slam
 
 ## Future Systems
 

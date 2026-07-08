@@ -87,7 +87,12 @@ local function validatePlayer(player, actionName)
 	local dojo = worldRoot and worldRoot:FindFirstChild(GameConstants.World.TrainingDojoName)
 	local arena = dojo and dojo:FindFirstChild(GameConstants.World.CombatArenaName)
 	local arenaFloor = arena and arena:FindFirstChild("ArenaFloor")
-	if arenaFloor and (root.Position - arenaFloor.Position).Magnitude > GameConstants.Movement.MaxRemoteDistanceFromDojo then
+
+	local arena3v3 = worldRoot and worldRoot:FindFirstChild(GameConstants.World.Arena3v3Name)
+	local arena3v3Floor = arena3v3 and arena3v3:FindFirstChild("ArenaFloor")
+	local tooFarFromDojo = arenaFloor and (root.Position - arenaFloor.Position).Magnitude > GameConstants.Movement.MaxRemoteDistanceFromDojo
+	local tooFarFromArena = arena3v3Floor and (root.Position - arena3v3Floor.Position).Magnitude > GameConstants.Movement.MaxRemoteDistanceFromDojo
+	if tooFarFromDojo and (not arena3v3Floor or tooFarFromArena) then
 		return false, "tooFar"
 	end
 

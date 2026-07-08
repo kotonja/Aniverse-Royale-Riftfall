@@ -8,11 +8,11 @@ Docs, Rojo-friendly source structure, shared config, server-authoritative combat
 
 Real Studio instance contract for the Training Dojo and HUD, dedicated server movement validation, remote rate limiting, sprint/dash/air dash/double jump/slide/wall kick feel, third-person camera pulses, mobile buttons, combat feedback, and temporary client VFX.
 
-## AR-003 Four Character 3v3 Arena
+## AR-003 Four Character 3v3 Arena - Complete
 
-Add two more original Riftborn and build a tighter 3v3 arena test loop.
+Adds Sora Nym and Atlas Null, server-owned Team Sun / Team Moon assignment, local arena round flow, Arena3v3 Studio instances, team-tagged arena bots, HUD TeamPanel and ArenaPanel, and first support/tank mechanics.
 
-## AR-004 Down/Revive + Aura Link
+## AR-004 Down/Revive + Aura Link - Next
 
 Add downed state, revive flow, squad pings, and first Aura Link combo prototypes.
 

@@ -1,6 +1,6 @@
 local GameConstants = {}
 
-GameConstants.Milestone = "AR-002"
+GameConstants.Milestone = "AR-003"
 
 GameConstants.Stats = {
 	MaxHealth = 100,
@@ -29,7 +29,7 @@ GameConstants.Movement = {
 	SlideSpeed = 58,
 	WallKickHorizontalPower = 54,
 	WallKickVerticalPower = 44,
-	MaxRemoteDistanceFromDojo = 260,
+	MaxRemoteDistanceFromDojo = 360,
 	RemoteRateLimitCapacity = 18,
 	RemoteRateLimitRefill = 9,
 }
@@ -41,6 +41,7 @@ GameConstants.Combat = {
 	BlockBreakLockout = 1.6,
 	DummyMaxHealth = 250,
 	DummyResetDelay = 1.6,
+	TemporaryShieldCap = 45,
 	RemoteRateLimitCapacity = 18,
 	RemoteRateLimitRefill = 8,
 }
@@ -57,14 +58,27 @@ GameConstants.Match = {
 	FutureTargetPlayers = 30,
 	ModeName = "Squad Royale",
 	SandboxState = "TrainingDojo",
+	ArenaModeName = "AR-003 Arena Test",
+}
+
+GameConstants.Arena = {
+	CountdownSeconds = 5,
+	ResetSeconds = 8,
+	MinimumCombatantsPerTeam = 1,
+	BotFillEnabled = true,
 }
 
 GameConstants.Remotes = {
 	RequestCharacterChange = "RequestCharacterChange",
+	RequestTeamChange = "RequestTeamChange",
+	RequestArenaStart = "RequestArenaStart",
 	CombatAction = "CombatAction",
 	MovementAction = "MovementAction",
 	StateUpdate = "StateUpdate",
 	CombatFeedback = "CombatFeedback",
+	ArenaStateUpdate = "ArenaStateUpdate",
+	TeamStateUpdate = "TeamStateUpdate",
+	BotStateUpdate = "BotStateUpdate",
 }
 
 GameConstants.Actions = {
@@ -87,6 +101,7 @@ GameConstants.Actions = {
 GameConstants.World = {
 	RootName = "AniverseRiftfall",
 	TrainingDojoName = "TrainingDojo",
+	Arena3v3Name = "Arena3v3",
 	SpawnAreaName = "SpawnArea",
 	CombatArenaName = "CombatArena",
 	MovementCourseName = "MovementCourse",
@@ -97,6 +112,13 @@ GameConstants.World = {
 		CharacterPad = "AR_CharacterPad",
 		MovementGate = "AR_MovementGate",
 		TrainingSign = "AR_TrainingSign",
+		Arena3v3 = "AR_Arena3v3",
+		TeamPad = "AR_TeamPad",
+		ArenaStartPad = "AR_ArenaStartPad",
+		ArenaSpawn = "AR_ArenaSpawn",
+		ArenaBotSpawn = "AR_ArenaBotSpawn",
+		ArenaBoundary = "AR_ArenaBoundary",
+		ArenaBot = "AR_ArenaBot",
 	},
 }
 
@@ -110,6 +132,8 @@ GameConstants.UI = {
 	FeedbackLayerName = "FeedbackLayer",
 	MobileButtonsName = "MobileButtons",
 	DebugPanelName = "DebugPanel",
+	TeamPanelName = "TeamPanel",
+	ArenaPanelName = "ArenaPanel",
 }
 
 return GameConstants

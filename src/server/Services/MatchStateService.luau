@@ -12,11 +12,11 @@ MatchStateService.States = {
 	Results = "Results",
 }
 
-local currentState = "TrainingSandbox"
+local currentState = "AR003ArenaTest"
 
 function MatchStateService.Start()
-	currentState = "TrainingSandbox"
-	print("[Aniverse Royale] MatchStateService running in sandbox mode.")
+	currentState = "AR003ArenaTest"
+	print("[Aniverse Royale] MatchStateService running in AR-003 arena test mode.")
 end
 
 function MatchStateService.GetState()
